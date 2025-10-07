@@ -14,15 +14,19 @@ jobs:
       packages: write
 
     steps:
-      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up Docker Buildx (for multi-platform builds)
+      # Add a step to verify Dockerfile exists
+      - name: Check for Dockerfile
+        run: |
+          echo "Looking for Dockerfile in $(pwd)"
+          ls -la
+          test -f ./Dockerfile || (echo "❌ Dockerfile not found!" && exit 1)
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Log in to GitHub Container Registry (GHCR)
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -30,7 +34,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata for tagging (commit SHA, latest, etc.)
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -41,7 +44,6 @@ jobs:
             type=sha
             type=raw,value=latest
 
-      # Build and push Docker image
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
